@@ -69,7 +69,7 @@ Also, there were ideas before the above architecture, as pursued by Satoshi and 
     
 Judging from empirical evidence in their papers that both neural networks seems to work pretty well, I decided to give it a try and incorporate something similar to their works.
 
-{% highlight ruby %}
+```ruby
 #Shared models
 encoder_input = Input(shape=(256, 256, 1,))
 encoder_output = Conv2D(64, (3,3), activation='relu', padding='same', strides=2)(encoder_input)
@@ -113,8 +113,8 @@ decoder_output = UpSampling2D((2, 2))(decoder_output)
 model = Model(inputs=encoder_input, outputs=decoder_output)
 # Finish model
 model.compile(optimizer='adam',loss=ssim_loss ,metrics=['mse','mean_absolute_error'])
-{% endhighlight %}
-    
+```
+
 Included in this model, I have used Relu activation function for the hidden layers and tanh for the last layer. The use of the tanh is because the output layer which are the ab channels have normalized range between -1 and 1, which coincide with the output of tanh. As for the loss function, I decided to use multi-scale SSIM because the results from my previous trial experiments proved that brown is the most closest color to every other color in the spectrum. The image output at the end using MSE as my loss function would be largely just colored in brown. On the other hand, [MS-SSIM][SSIM] can help measure the the picture's similarity as a whole between channels from the target and the generated output. In the above structure, I used a common shared model to encode the input image. The shape gets halved everytime I use a convolutional layer with stride 2. In this case, batch normalization is spreaded out as following Federico (2017). Halfway through convoluting the image into more abstract features, I will halt the convolution in one path, and proceed to form a dense and fully connected layer for the other (which is named global encoder). In the end, I concatenate both paths back again into a fusion output, which is then passed through upsampling layers to return my original image shape.
 
 The benefits of having both globally encoded features and one that stopped at halfway is that the resulting outpt vector contains both defining features of the image and also the overall quality of the picture. This would help in producing a more realistic image when the output is finally produced at the end of the decoding process.
@@ -161,8 +161,7 @@ The generator's loss term on the other hand is the addition of 3 different indiv
 
 Finally, at the end, to train the model, I also used the Adam optimizer and these loss terms are respectively applied to their own model (generator and discriminator). Quoted below is the full code that I ran on google Colab with GPU.
 
-{% highlight ruby %}
-    
+```ruby    
 # Convu filter to downsample image
 def downsample(filters, size, apply_batchnorm=True):
     initializer = tf.random_normal_initializer(0., 0.02)
@@ -328,7 +327,7 @@ def train_step(input_image, target):
 
     generator_optimizer.apply_gradients(zip(generator_gradients, generator.trainable_variables))
     discriminator_optimizer.apply_gradients(zip(discriminator_gradients,discriminator.trainable_variables))
-{% endhighlight %}
+```
     
 ## Results
     
